@@ -64,10 +64,16 @@ impl Snake {
         self.last_direction = direction;
 
         let new_head = match direction {
-            Direction::Up => Block((self.head.0) % self.width, (self.head.1 - 1) % self.height),
+            Direction::Up => Block(
+                (self.head.0) % self.width,
+                (self.head.1.checked_sub(1).unwrap_or(self.height - 1)) % self.height,
+            ),
             Direction::Down => Block((self.head.0) % self.width, (self.head.1 + 1) % self.height),
             Direction::Right => Block((self.head.0 + 1) % self.width, (self.head.1) % self.height),
-            Direction::Left => Block((self.head.0 - 1) % self.width, (self.head.1) % self.height),
+            Direction::Left => Block(
+                (self.head.0.checked_sub(1).unwrap_or(self.width - 1)) % self.width,
+                (self.head.1) % self.height,
+            ),
         };
 
         self.tail.insert(0, self.head);
@@ -77,11 +83,13 @@ impl Snake {
             *self = Snake::new(self.width, self.height);
         }
 
+        // js! { console.log( "X:", @{self.head.0}, "Y:", @{self.head.1} ) }
+        // uncomment to see x and y coordinates of the snake's head in browser console.
         self.head = new_head;
         if self.head == self.food {
             let mut food = self.food;
             while food == self.head || self.tail.contains(&food) {
-                let food_x: u32 = js!{ return Math.floor(Math.random() * @{self.width}) }
+                let food_x: u32 = js! { return Math.floor(Math.random() * @{self.width}) }
                     .try_into()
                     .unwrap();
 
